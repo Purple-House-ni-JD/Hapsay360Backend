@@ -1,7 +1,7 @@
 import User from "../models/User.js";
 
 /**
- * Create a new appointment
+ * Create a new appointmentg
  * Accessible only to 'user' role
  */
 export const createAppointment = async (req, res) => {
