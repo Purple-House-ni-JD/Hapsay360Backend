@@ -1,5 +1,6 @@
 import { Officer, PoliceStation } from "../models/index.js";
 import { validateEmail } from "./auth.controller.js";
+import 'pdfkit-table';
 
 export const createOfficer = async (req, res) => {
     try {
