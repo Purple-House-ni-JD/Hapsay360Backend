@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { generateId } from '../lib/idGenerator.js';
 
 // Location subdocument schema for SOS requests (Number coordinates)
 const sosLocationSchema = new mongoose.Schema({
@@ -14,12 +13,6 @@ const sosLocationSchema = new mongoose.Schema({
 }, { _id: false });
 
 const sosRequestSchema = new mongoose.Schema({
-    custom_id: {
-        type: String,
-        unique: true,
-        required: true,
-        default: () => generateId('SOS')
-    },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -49,20 +42,9 @@ const sosRequestSchema = new mongoose.Schema({
     }
 });
 
-// Update updated_at before saving and ensure custom_id
-sosRequestSchema.pre('save', async function(next) {
+// Update updated_at before saving
+sosRequestSchema.pre('save', function(next) {
     this.updated_at = Date.now();
-
-    if (!this.custom_id) {
-        let id;
-        let exists;
-        do {
-            id = generateId('SOS');
-            exists = await this.constructor.findOne({ custom_id: id });
-        } while (exists);
-        this.custom_id = id;
-    }
-
     next();
 });
 

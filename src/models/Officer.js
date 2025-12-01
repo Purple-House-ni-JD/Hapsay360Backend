@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { generateId } from '../lib/idGenerator.js';
 
 // Contact subdocument schema for officers
 const officerContactSchema = new mongoose.Schema({
@@ -15,12 +14,6 @@ const officerContactSchema = new mongoose.Schema({
 }, { _id: false });
 
 const officerSchema = new mongoose.Schema({
-    custom_id: {
-        type: String,
-        unique: true,
-        required: true,
-        default: () => generateId('OFF')
-    },
     email: {
         type: String,
         required: true,
@@ -28,7 +21,7 @@ const officerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: false,
+        required: true,
         minlength: 6
     },
     first_name: {
@@ -38,6 +31,15 @@ const officerSchema = new mongoose.Schema({
     last_name: {
         type: String,
         required: true
+    },
+    badge_number: {
+        type: String,
+        required: false,
+        unique: true
+    },
+    rank: {
+        type: String,
+        required: false
     },
     station_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -51,13 +53,7 @@ const officerSchema = new mongoose.Schema({
     status: {
         type: String,
         required: false,
-        enum: ['ACTIVE', 'ON DUTY', 'INACTIVE', 'SUSPENDED'],
-        default: 'ACTIVE'
-    },
-    role: {
-        type: String,
-        required: true,
-        default: 'OFFICER'
+        default: 'active'
     },
     created_at: {
         type: Date,
@@ -72,22 +68,12 @@ const officerSchema = new mongoose.Schema({
 // Hash password before saving
 officerSchema.pre('save', async function(next) {
     this.updated_at = Date.now();
+    
+    if (!this.isModified('password')) return next();
 
-    if (!this.custom_id) {
-        let id;
-        let exists;
-        do {
-            id = generateId('OFF');
-            exists = await this.constructor.findOne({ custom_id: id });
-        } while (exists);
-        this.custom_id = id;
-    }
-
-    // if (!this.isModified('password')) return next();
-
-    // const salt = await bcrypt.genSalt(10);
-    // this.password = await bcrypt.hash(this.password, salt);
-    // next();
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    next();
 });
 
 const Officer = mongoose.model('Officer', officerSchema);

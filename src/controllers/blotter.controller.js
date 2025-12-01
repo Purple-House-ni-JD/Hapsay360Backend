@@ -1,4 +1,5 @@
-import { Blotter, User, Officer } from "../models/index.js";
+import Blotter from "../models/Blotter.js";
+import User from "../models/User.js";
 
 /**
  * @route POST /api/blotters

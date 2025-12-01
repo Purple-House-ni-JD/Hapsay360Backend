@@ -177,10 +177,7 @@ export const registerAdmin = async (req, res) => {
   }
 };
 
-/**
- * Login user
- * @route POST /api/auth/login
- */
+// LOGIN
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;

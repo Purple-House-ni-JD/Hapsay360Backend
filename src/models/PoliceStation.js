@@ -1,5 +1,4 @@
 import mongoose from 'mongoose';
-import { generateId } from '../lib/idGenerator.js';
 
 // Contact subdocument schema for police stations
 const stationContactSchema = new mongoose.Schema({
@@ -9,7 +8,7 @@ const stationContactSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: false,
+        required: true
     },
     landline: {
         type: String,
@@ -21,21 +20,15 @@ const stationContactSchema = new mongoose.Schema({
 const stationLocationSchema = new mongoose.Schema({
     latitude: {
         type: String,
-        required: false,
+        required: true
     },
     longitude: {
         type: String,
-        required: false,
+        required: true
     }
 }, { _id: false });
 
 const policeStationSchema = new mongoose.Schema({
-    custom_id: {
-        type: String,
-        unique: true,
-        required: true,
-        default: () => generateId('PS')
-    },
     name: {
         type: String,
         required: true
@@ -50,7 +43,7 @@ const policeStationSchema = new mongoose.Schema({
     },
     location: {
         type: stationLocationSchema,
-        required: true
+        required: false
     },
     officer_IDs: {
         type: [mongoose.Schema.Types.ObjectId],
@@ -67,20 +60,9 @@ const policeStationSchema = new mongoose.Schema({
     }
 });
 
-// Update updated_at before saving and ensure custom_id
-policeStationSchema.pre('save', async function(next) {
+// Update updated_at before saving
+policeStationSchema.pre('save', function(next) {
     this.updated_at = Date.now();
-
-    if (!this.custom_id) {
-        let id;
-        let exists;
-        do {
-            id = generateId('PS');
-            exists = await this.constructor.findOne({ custom_id: id });
-        } while (exists);
-        this.custom_id = id;
-    }
-
     next();
 });
 
