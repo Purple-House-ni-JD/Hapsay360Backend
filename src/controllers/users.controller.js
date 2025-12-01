@@ -76,9 +76,20 @@ export const getUserById = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
-    const userData = req.body;
-    const newUser = new User(userData);
+    const { role, ...userData } = req.body;
+
+    // Optional: Validate role
+    const validRoles = ["user", "admin", "officer"];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid role. Allowed roles: ${validRoles.join(", ")}`,
+      });
+    }
+
+    const newUser = new User({ ...userData, role: role || "user" });
     await newUser.save();
+
     res.status(201).json({
       success: true,
       data: newUser,

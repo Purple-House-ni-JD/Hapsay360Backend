@@ -115,6 +115,11 @@ const userSchema = new mongoose.Schema({
     enum: ["Active", "Inactive", "Suspended"],
     default: "Active",
   },
+  role: {
+    type: String,
+    enum: ["user", "admin", "officer"], // Allowed roles
+    default: "user",
+  },
   last_activity: {
     type: Date,
     required: false,
