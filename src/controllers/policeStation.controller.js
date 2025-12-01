@@ -87,7 +87,11 @@ export const deletePoliceStation = async (req, res) => {
 
 export const getPoliceStations = async (req, res) => {
   try {
-    const stations = await PoliceStation.find().select("name address");
+    // select 'location' so the SOS screen can calculate distance
+    const stations = await PoliceStation.find().select(
+      "name address location contact"
+    );
+
     res.status(200).json({ success: true, data: stations });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

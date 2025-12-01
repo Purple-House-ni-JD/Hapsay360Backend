@@ -165,6 +165,7 @@ export const registerAdmin = async (req, res) => {
         first_name: officer.first_name,
         last_name: officer.last_name,
         email: officer.email,
+        role: officer.role,
       },
     });
   } catch (error) {
