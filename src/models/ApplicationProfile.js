@@ -3,18 +3,18 @@ import mongoose from "mongoose";
 // Personal Info subdocument
 const personalInfoSchema = new mongoose.Schema(
   {
-    givenName: String,
-    middleName: String,
+    given_name: String,
+    middle_name: String,
     surname: String,
     qualifier: String,
     sex: { type: String, enum: ["Male", "Female"] },
-    civilStatus: String,
-    birthdate: Date,
-    isPWD: { type: Boolean, default: false },
-    isFirstTimeJobSeeker: { type: Boolean, default: false },
+    civil_status: String,
+    birthday: Date,
+    pwd: { type: Boolean, default: false },
+    first_time_job_seeker: { type: Boolean, default: false },
     nationality: String,
-    birthPlace: String,
-    otherCountry: String,
+    birth_place: String,
+    other_country: String,
   },
   { _id: false }
 );
@@ -22,12 +22,12 @@ const personalInfoSchema = new mongoose.Schema(
 // Address subdocument
 const addressSchema = new mongoose.Schema(
   {
-    houseNo: String,
+    house_no: String,
     street: String,
     city: String,
     barangay: String,
     province: String,
-    postalCode: String,
+    postal_code: String,
     country: String,
     email: String,
     mobile: String,
@@ -40,24 +40,24 @@ const addressSchema = new mongoose.Schema(
 const familySchema = new mongoose.Schema(
   {
     father: {
-      given: String,
-      middle: String,
+      given_name: String,
+      middle_name: String,
       surname: String,
       qualifier: String,
-      birthPlace: String,
-      otherCountry: String,
+      birth_place: String,
+      other_country: String,
     },
     mother: {
-      given: String,
-      middle: String,
+      given_name: String,
+      middle_name: String,
       surname: String,
       qualifier: String,
-      birthPlace: String,
-      otherCountry: String,
+      birth_place: String,
+      other_country: String,
     },
     spouse: {
-      given: String,
-      middle: String,
+      given_name: String,
+      middle_name: String,
       surname: String,
       qualifier: String,
     },
@@ -69,15 +69,19 @@ const familySchema = new mongoose.Schema(
 const applicationProfileSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+
     personal_info: { type: personalInfoSchema },
+
     address: { type: addressSchema },
+
     family: { type: familySchema },
+
     other_info: {
       height: String,
       weight: String,
       complexion: String,
-      identifyingMarks: String,
-      bloodType: String,
+      identifying_marks: String,
+      blood_type: String,
       religion: String,
       education: String,
       occupation: String,
@@ -86,8 +90,7 @@ const applicationProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const ApplicationProfile = mongoose.model(
-  "ApplicationProfile",
-  applicationProfileSchema
-);
+const ApplicationProfile =
+  mongoose.models.ApplicationProfile ||
+  mongoose.model("ApplicationProfile", applicationProfileSchema);
 export default ApplicationProfile;
