@@ -15,7 +15,7 @@ router.post(
     req.body.role = "admin";
     next();
   },
-  register
+  registerAdmin
 );
 router.post(
   "/officer/register",
