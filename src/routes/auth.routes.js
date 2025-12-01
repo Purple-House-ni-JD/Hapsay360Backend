@@ -1,5 +1,5 @@
 import express from "express";
-import { register, login } from "../controllers/auth.controller.js";
+import { register, login, registerAdmin, loginAdmin } from "../controllers/auth.controller.js";
 import {
   authMiddleware,
   authorizeRoles,
@@ -26,6 +26,8 @@ router.post(
   register
 );
 router.post("/login", login);
+
+router.post("/admin/login", loginAdmin);
 
 // ---------- Protected Test Routes ----------
 router.get("/admin-only", authMiddleware, authorizeRoles("admin"), (req, res) =>
