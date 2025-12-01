@@ -38,14 +38,16 @@ const officerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    badge_number: {
+    status: {
         type: String,
         required: false,
-        unique: true
+        enum: ['ACTIVE', 'ON DUTY', 'INACTIVE', 'SUSPENDED'],
+        default: 'ACTIVE'
     },
-    rank: {
+    role: {
         type: String,
-        required: false
+        required: true,
+        default: 'OFFICER'
     },
     station_id: {
         type: mongoose.Schema.Types.ObjectId,
