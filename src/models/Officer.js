@@ -27,7 +27,7 @@ const officerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 6
     },
     first_name: {
@@ -57,11 +57,6 @@ const officerSchema = new mongoose.Schema({
     contact: {
         type: officerContactSchema,
         required: false
-    },
-    status: {
-        type: String,
-        required: false,
-        default: 'active'
     },
     created_at: {
         type: Date,
