@@ -13,7 +13,8 @@ const paymentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        required: false
+        required: false,
+        default: 'pending'
     }
 }, { _id: false });
 
