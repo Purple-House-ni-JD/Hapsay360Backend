@@ -5,6 +5,8 @@ import Officer from './Officer.js';
 import ClearanceApplication from './ClearanceApplication.js';
 import SOSRequest from './SOSRequest.js';
 import Announcement from './Announcement.js';
+import ApplicationProfile from './ApplicationProfile.js';
+import Appointment from './Appointment.js';
 
 export {
     User,
@@ -14,5 +16,6 @@ export {
     ClearanceApplication,
     SOSRequest,
     Announcement
+    ,ApplicationProfile, Appointment
 };
 

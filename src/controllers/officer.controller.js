@@ -13,7 +13,7 @@ export const createOfficer = async (req, res) => {
                 message: 'All fields are required'
             });
         }
-        
+
         if (!validateEmail(email)) {
             return res.status(400).json({
                 success: false,
@@ -65,7 +65,7 @@ export const createOfficer = async (req, res) => {
         console.error(error);
         res.status(500).json({
             success: false,
-            message: 'Server error'
+            message: 'Server error: ' + error.message
         });
     }
 }

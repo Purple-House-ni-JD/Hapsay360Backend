@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { generateId } from '../lib/idGenerator.js';
 
 // Contact subdocument schema for police stations
 const stationContactSchema = new mongoose.Schema({
@@ -29,6 +30,11 @@ const stationLocationSchema = new mongoose.Schema({
 }, { _id: false });
 
 const policeStationSchema = new mongoose.Schema({
+    custom_id: {
+        type: String,
+        unique: true,
+        default: () => generateId('PST')
+    },
     name: {
         type: String,
         required: true

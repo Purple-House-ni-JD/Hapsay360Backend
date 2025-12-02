@@ -152,7 +152,7 @@ export const registerAdmin = async (req, res) => {
     }
 
     // Create officer
-    const officer = new Officer({ first_name, last_name, email, password });
+    const officer = new Officer({ first_name, last_name, email, password, role: "admin" });
     await officer.save();
 
     const token = generateToken(officer._id);
@@ -165,6 +165,7 @@ export const registerAdmin = async (req, res) => {
         first_name: officer.first_name,
         last_name: officer.last_name,
         email: officer.email,
+        role: officer.role,
       },
     });
   } catch (error) {

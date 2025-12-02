@@ -68,7 +68,7 @@ const clearanceApplicationSchema = new mongoose.Schema({
   custom_id: {
     type: String,
     unique: true,
-    default: () => `CLR-${nanoid()}`,
+    default: () => generateId("CLR"),
   },
 });
 

@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
+import { generateId } from "../lib/idGenerator.js";
 
 const appointmentSchema = new mongoose.Schema({
+  custom_id: {
+    type: String,
+    unique: true,
+    default: () => generateId("APT"),
+  },
   user_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

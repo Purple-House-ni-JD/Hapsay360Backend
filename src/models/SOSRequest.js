@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { generateId } from '../lib/idGenerator.js';
 
 // Location subdocument schema for SOS requests (Number coordinates)
 const sosLocationSchema = new mongoose.Schema({
@@ -13,6 +14,11 @@ const sosLocationSchema = new mongoose.Schema({
 }, { _id: false });
 
 const sosRequestSchema = new mongoose.Schema({
+    custom_id: {
+        type: String,
+        unique: true,
+        default: () => generateId('SOS')
+    },
     user_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

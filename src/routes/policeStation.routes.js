@@ -1,17 +1,12 @@
-import express from "express";
-import {
-  createPoliceStation,
-  getStations,
-  deletePoliceStation,
-  getPoliceStations,
-} from "../controllers/policeStation.controller.js";
+import express from 'express';
+import { createPoliceStation, getStations, generateStationsPdf, deletePoliceStation } from '../controllers/policeStation.controller.js';
+import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post("/create", createPoliceStation);
-router.get("/getStations", getStations);
-router.delete("/delete/:id", deletePoliceStation);
-
-router.get("/", getPoliceStations);
+router.post('/create', authMiddleware, authorizeRoles('admin'), createPoliceStation);
+router.get('/getStations', authMiddleware, authorizeRoles('admin'), getStations);
+router.get('/export/pdf', authMiddleware, authorizeRoles('admin'), generateStationsPdf);
+router.delete('/delete/:id', authMiddleware, authorizeRoles('admin'), deletePoliceStation);
 
 export default router;

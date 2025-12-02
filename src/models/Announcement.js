@@ -1,6 +1,12 @@
 import mongoose from 'mongoose';
+import { generateId } from '../lib/idGenerator.js';
 
 const announcementSchema = new mongoose.Schema({
+    custom_id: {
+        type: String,
+        unique: true,
+        default: () => generateId('ANN')
+    },
     station_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'PoliceStation',

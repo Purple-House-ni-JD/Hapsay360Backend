@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { generateId } from '../lib/idGenerator.js';
 import bcrypt from 'bcryptjs';
 
 // Contact subdocument schema for officers
@@ -14,6 +15,11 @@ const officerContactSchema = new mongoose.Schema({
 }, { _id: false });
 
 const officerSchema = new mongoose.Schema({
+    custom_id: {
+        type: String,
+        unique: true,
+        default: () => generateId('OFF')
+    },
     email: {
         type: String,
         required: true,
@@ -21,7 +27,7 @@ const officerSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 6
     },
     first_name: {
@@ -32,14 +38,16 @@ const officerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    badge_number: {
+    status: {
         type: String,
         required: false,
-        unique: true
+        enum: ['ACTIVE', 'ON DUTY', 'INACTIVE', 'SUSPENDED'],
+        default: 'ACTIVE'
     },
-    rank: {
+    role: {
         type: String,
-        required: false
+        required: true,
+        default: 'OFFICER'
     },
     station_id: {
         type: mongoose.Schema.Types.ObjectId,
@@ -49,11 +57,6 @@ const officerSchema = new mongoose.Schema({
     contact: {
         type: officerContactSchema,
         required: false
-    },
-    status: {
-        type: String,
-        required: false,
-        default: 'active'
     },
     created_at: {
         type: Date,

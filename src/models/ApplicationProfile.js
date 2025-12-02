@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { generateId } from "../lib/idGenerator.js";
 
 // Personal Info subdocument
 const personalInfoSchema = new mongoose.Schema(
@@ -68,6 +69,11 @@ const familySchema = new mongoose.Schema(
 // Main ApplicationProfile schema
 const applicationProfileSchema = new mongoose.Schema(
   {
+    custom_id: {
+      type: String,
+      unique: true,
+      default: () => generateId("APF"),
+    },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     personal_info: { type: personalInfoSchema },
     address: { type: addressSchema },

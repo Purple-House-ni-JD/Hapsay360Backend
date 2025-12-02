@@ -7,6 +7,7 @@ import blotterRoutes from "./blotter.routes.js";
 import applicationRoutes from "./application.routes.js";
 import appointmentRoutes from "./appointment.routes.js";
 import sosRoutes from "./sos.routes.js";
+import officerRoutes from "./officer.routes.js";
 
 const router = express.Router();
 
@@ -19,5 +20,6 @@ router.use("/blotters", blotterRoutes);
 router.use("/application", applicationRoutes);
 router.use("/appointments", appointmentRoutes);
 router.use("/sos", sosRoutes);
+router.use("/officers", officerRoutes);
 
 export default router;
