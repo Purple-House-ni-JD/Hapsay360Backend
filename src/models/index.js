@@ -15,7 +15,8 @@ export {
     Officer,
     ClearanceApplication,
     SOSRequest,
-    Announcement
-    ,ApplicationProfile, Appointment
+    Announcement,
+    ApplicationProfile, 
+    Appointment,
 };
 

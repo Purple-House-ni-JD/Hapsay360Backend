@@ -8,6 +8,7 @@ import applicationRoutes from "./application.routes.js";
 import appointmentRoutes from "./appointment.routes.js";
 import sosRoutes from "./sos.routes.js";
 import officerRoutes from "./officer.routes.js";
+import announcementRoutes from "./announcement.routes.js";
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/application", applicationRoutes);
 router.use("/appointments", appointmentRoutes);
 router.use("/sos", sosRoutes);
 router.use("/officers", officerRoutes);
+router.use("/announcements", announcementRoutes);
 
 export default router;

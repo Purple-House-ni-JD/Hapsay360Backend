@@ -1,6 +1,17 @@
 import mongoose from 'mongoose';
 import { generateId } from '../lib/idGenerator.js';
 
+const attachmentSchema = new mongoose.Schema({
+    type: {
+        type: String,
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    }
+}, { _id: false });
+
 const announcementSchema = new mongoose.Schema({
     custom_id: {
         type: String,
@@ -21,10 +32,21 @@ const announcementSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    attachments: {
+        type: [attachmentSchema],
+        required: false,
+        default: null
+    },
     date: {
         type: Date,
-        required: true,
+        required: false,
         default: Date.now
+    },
+    status: {
+        type: String,
+        enum: ['PUBLISHED', 'DRAFT', 'ARCHIVED'],
+        required: false,
+        default: 'DRAFT'
     },
     created_at: {
         type: Date,
