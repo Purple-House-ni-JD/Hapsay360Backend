@@ -80,7 +80,7 @@ export const createBlotter = async (req, res) => {
 export const getAllBlotters = async (req, res) => {
   try {
     const blotters = await Blotter.find()
-      .populate("user.id", "-password")
+      .populate("user_id", "-password")
       .populate("assigned_Officer", "-password");
     res.status(200).json({
       success: true,
