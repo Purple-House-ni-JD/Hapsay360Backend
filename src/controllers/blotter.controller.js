@@ -112,7 +112,6 @@ export const getUserBlotters = async (req, res) => {
     // SOLUTION: Look for user_id OR userId
     const blotters = await Blotter.find({
       $or: [
-        { user_id: userId }, // Matches your new schema
         { userId: userId }, // Matches your existing test data
       ],
     })

@@ -2,13 +2,21 @@ import mongoose from 'mongoose';
 import { generateId } from '../lib/idGenerator.js';
 
 const attachmentSchema = new mongoose.Schema({
-    type: {
+    filename: {
         type: String,
         required: true
     },
-    url: {
+    mimetype: {
         type: String,
         required: true
+    },
+    data: {
+        type: Buffer,
+        required: true
+    },
+    size: {
+        type: Number,
+        required: false
     }
 }, { _id: false });
 

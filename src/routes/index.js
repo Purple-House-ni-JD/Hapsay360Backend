@@ -9,6 +9,7 @@ import appointmentRoutes from "./appointment.routes.js";
 import sosRoutes from "./sos.routes.js";
 import officerRoutes from "./officer.routes.js";
 import announcementRoutes from "./announcement.routes.js";
+import uploadRoutes from "./upload.routes.js";
 
 const router = express.Router();
 
@@ -23,5 +24,6 @@ router.use("/appointments", appointmentRoutes);
 router.use("/sos", sosRoutes);
 router.use("/officers", officerRoutes);
 router.use("/announcements", announcementRoutes);
+router.use("/upload", uploadRoutes);
 
 export default router;
