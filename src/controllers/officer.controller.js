@@ -165,163 +165,239 @@ export const deleteOfficer = async (req, res) => {
 // Add these methods to your existing officer.controller.js
 
 export const getOfficerProfile = async (req, res) => {
-    try {
-        // The authMiddleware already sets req.user.id
-        const officerId = req.user.id;
-        
-        const officer = await Officer.findById(officerId)
-            .populate('station_id', 'name location')
-            .select('-password'); // Exclude password from response
+    try {
+        const officerId = req.user.id;
+        
+        const officer = await Officer.findById(officerId)
+            .populate('station_id', 'name location')
+            .select('-password');
 
-        if (!officer) {
-            return res.status(404).json({
-                success: false,
-                message: 'Officer not found'
-            });
-        }
+        if (!officer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Officer not found'
+            });
+        }
 
-        res.status(200).json({
-            success: true,
-            data: officer
-        });
-    } catch (error) {
-        console.error('Get officer profile error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
+        // Convert binary profile picture to URL (like announcements)
+        const responseData = officer.toObject();
+        if (responseData.profile_picture && responseData.profile_picture.data) {
+            responseData.profile_picture_url = `/api/officers/profile/picture`;
+            // Remove binary data from response
+            delete responseData.profile_picture;
+        } else {
+            responseData.profile_picture_url = null;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: responseData
+        });
+    } catch (error) {
+        console.error('Get officer profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
 };
 
 export const updateOfficerProfile = async (req, res) => {
-    try {
-        // The authMiddleware already sets req.user.id
-        const officerId = req.user.id;
-        const { first_name, last_name, email, mobile_number, radio_id } = req.body;
+    try {
+        const officerId = req.user.id;
+        const { first_name, last_name, email, mobile_number, radio_id } = req.body;
 
-        // Validate required fields
-        if (!first_name || !last_name || !email) {
-            return res.status(400).json({
-                success: false,
-                message: 'First name, last name, and email are required'
-            });
-        }
+        if (!first_name || !last_name || !email) {
+            return res.status(400).json({
+                success: false,
+                message: 'First name, last name, and email are required'
+            });
+        }
 
-        // Validate email format (reuse your existing validateEmail function)
-        if (!validateEmail(email)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid email format'
-            });
-        }
+        if (!validateEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid email format'
+            });
+        }
 
-        // Find the officer
-        const officer = await Officer.findById(officerId);
-        if (!officer) {
-            return res.status(404).json({
-                success: false,
-                message: 'Officer not found'
-            });
-        }
+        const officer = await Officer.findById(officerId);
+        if (!officer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Officer not found'
+            });
+        }
 
-        // Check if email is being changed and if it already exists for another officer
-        if (email !== officer.email) {
-            const existingOfficer = await Officer.findOne({ 
-                email, 
-                _id: { $ne: officerId } // Exclude current officer
-            });
-            if (existingOfficer) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'Email already exists'
-                });
-            }
-        }
+        if (email !== officer.email) {
+            const existingOfficer = await Officer.findOne({ 
+                email, 
+                _id: { $ne: officerId }
+            });
+            if (existingOfficer) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email already exists'
+                });
+            }
+        }
 
-        // Update officer details
-        officer.first_name = first_name;
-        officer.last_name = last_name;
-        officer.email = email;
-        
-        // Initialize contact object if it doesn't exist
-        if (!officer.contact) {
-            officer.contact = {};
-        }
-        
-        // Update contact information (only if provided)
-        if (mobile_number !== undefined) {
-            officer.contact.mobile_number = mobile_number;
-        }
-        if (radio_id !== undefined) {
-            officer.contact.radio_id = radio_id;
-        }
+        officer.first_name = first_name;
+        officer.last_name = last_name;
+        officer.email = email;
+        
+        if (!officer.contact) {
+            officer.contact = {};
+        }
+        
+        if (mobile_number !== undefined) {
+            officer.contact.mobile_number = mobile_number;
+        }
+        if (radio_id !== undefined) {
+            officer.contact.radio_id = radio_id;
+        }
 
-        // Save the updated officer
-        const savedOfficer = await officer.save();
-        
-        // Populate station info for response
-        await savedOfficer.populate('station_id', 'name location');
-        
-        // Remove password from response
-        const officerResponse = savedOfficer.toObject();
-        delete officerResponse.password;
+        const savedOfficer = await officer.save();
+        await savedOfficer.populate('station_id', 'name location');
+        
+        const officerResponse = savedOfficer.toObject();
+        delete officerResponse.password;
+        
+        // Convert profile picture to URL
+        if (officerResponse.profile_picture && officerResponse.profile_picture.data) {
+            officerResponse.profile_picture_url = `/api/officers/profile/picture`;
+            delete officerResponse.profile_picture;
+        } else {
+            officerResponse.profile_picture_url = null;
+        }
 
-        res.status(200).json({
-            success: true,
-            message: 'Profile updated successfully',
-            data: officerResponse
-        });
-    } catch (error) {
-        console.error('Update officer profile error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
+        res.status(200).json({
+            success: true,
+            message: 'Profile updated successfully',
+            data: officerResponse
+        });
+    } catch (error) {
+        console.error('Update officer profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
 };
-
 /**
  * New controller function to update the officer's profile picture URL.
  * Assumes the image has already been uploaded and the URL is provided in the request body.
  */
 export const updateOfficerProfilePicture = async (req, res) => {
-    try {
-        const officerId = req.user.id;
-        const { profile_picture_url } = req.body;
+    try {
+        const officerId = req.user.id;
+        const { profile_picture } = req.body;
 
-        if (!profile_picture_url) {
-            return res.status(400).json({
-                success: false,
-                message: 'Profile picture URL is required'
-            });
-        }
+        if (!profile_picture || !profile_picture.data) {
+            return res.status(400).json({
+                success: false,
+                message: 'Profile picture data is required'
+            });
+        }
 
-        const officer = await Officer.findByIdAndUpdate(
-            officerId,
-            { profile_picture_url: profile_picture_url },
-            { new: true, select: '-password' }
-        ).populate('station_id', 'name location');
+        const officer = await Officer.findById(officerId);
+        if (!officer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Officer not found'
+            });
+        }
 
-        if (!officer) {
-            return res.status(404).json({
-                success: false,
-                message: 'Officer not found'
-            });
-        }
+        // Convert base64 to Buffer (like announcement attachments)
+        let base64Data = profile_picture.data;
+        if (base64Data.startsWith('data:')) {
+            base64Data = base64Data.split(',')[1] || base64Data;
+        }
+        const buffer = Buffer.from(base64Data, 'base64');
 
-        res.status(200).json({
-            success: true,
-            message: 'Profile picture updated successfully',
-            data: officer
-        });
-    } catch (error) {
-        console.error('Update profile picture error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
-    }
+        // Store binary data in MongoDB
+        officer.profile_picture = {
+            data: buffer,
+            mimetype: profile_picture.mimetype || profile_picture.type || 'image/jpeg',
+            filename: profile_picture.filename || profile_picture.name || 'profile.jpg',
+            size: buffer.length
+        };
+
+        await officer.save();
+        await officer.populate('station_id', 'name location');
+
+        const officerResponse = officer.toObject();
+        delete officerResponse.password;
+        
+        // Return URL instead of binary data
+        if (officerResponse.profile_picture) {
+            officerResponse.profile_picture_url = `/api/officers/profile/picture`;
+            delete officerResponse.profile_picture;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Profile picture updated successfully',
+            data: officerResponse
+        });
+    } catch (error) {
+        console.error('Update profile picture error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
 };
+
+export const getOfficerProfilePicture = async (req, res) => {
+    try {
+        const officerId = req.user.id;
+
+        const officer = await Officer.findById(officerId);
+        if (!officer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Officer not found'
+            });
+        }
+
+        if (!officer.profile_picture || !officer.profile_picture.data) {
+            return res.status(404).json({
+                success: false,
+                message: 'No profile picture found'
+            });
+        }
+
+        const picture = officer.profile_picture;
+        
+        if (!Buffer.isBuffer(picture.data)) {
+            return res.status(500).json({
+                success: false,
+                message: 'Invalid profile picture data'
+            });
+        }
+
+        console.log(`Serving profile picture: ${picture.filename}, type: ${picture.mimetype}, size: ${picture.data.length}`);
+        
+        const encodedFilename = encodeURIComponent(picture.filename);
+        
+        res.set('Content-Type', picture.mimetype || 'image/jpeg');
+        res.set('Content-Length', picture.data.length);
+        res.set('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`);
+        res.set('Access-Control-Allow-Origin', '*');
+        res.set('Access-Control-Allow-Methods', 'GET');
+        
+        res.send(picture.data);
+    } catch (error) {
+        console.error('Error getting profile picture:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
