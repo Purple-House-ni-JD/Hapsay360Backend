@@ -58,6 +58,25 @@ const officerSchema = new mongoose.Schema({
         type: officerContactSchema,
         required: false
     },
+    // Store profile picture as binary data (like announcements)
+    profile_picture: {
+        data: {
+            type: Buffer,
+            required: false
+        },
+        mimetype: {
+            type: String,
+            required: false
+        },
+        filename: {
+            type: String,
+            required: false
+        },
+        size: {
+            type: Number,
+            required: false
+        }
+    },
     created_at: {
         type: Date,
         default: Date.now
@@ -82,4 +101,3 @@ officerSchema.pre('save', async function(next) {
 const Officer = mongoose.model('Officer', officerSchema);
 
 export default Officer;
-
