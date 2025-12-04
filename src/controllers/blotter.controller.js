@@ -13,63 +13,58 @@ export const createBlotter = async (req, res) => {
       incidentDate,
       incidentTime,
       incidentDescription,
+      latitude,
+      longitude,
+      address,
+      reporterName,
+      reporterContact,
+      reporterAddress,
       officerId,
+      attachments, // <--- 1. Get attachments from the request
     } = req.body;
 
-    if (
-      !userId ||
-      !incidentType ||
-      !incidentDate ||
-      !incidentTime ||
-      !incidentDescription
-    ) {
-      return res.status(400).json({
-        success: false,
-        message: "Missing required fields",
-      });
+    // Validate
+    if (!userId || !incidentType || !reporterName) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing fields" });
     }
 
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-    }
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
-    const officer = await Officer.findById(officerId);
-    if (!officer) {
-      return res.status(404).json({
-        success: false,
-        message: "Officer not found",
-      });
-    }
-
-    const incident = {
-      incident_type: incidentType,
-      date: incidentDate,
-      time: incidentTime,
-      description: incidentDescription,
-    };
-
+    // Create Blotter
     const blotter = new Blotter({
       user_id: userId,
       assigned_Officer: officerId,
-      incident,
+
+      incident: {
+        type: incidentType,
+        date: incidentDate,
+        time: incidentTime,
+        description: incidentDescription,
+        location: { latitude, longitude, address },
+      },
+
+      reporter: {
+        fullName: reporterName,
+        contactNumber: reporterContact,
+        address: reporterAddress,
+      },
+
+      // 2. SAVE THE ATTACHMENTS HERE
+      // We use || [] to ensure it doesn't crash if attachments is undefined
+      attachments: attachments || [],
     });
 
     await blotter.save();
-    res.status(201).json({
-      success: true,
-      data: blotter,
-    });
+    res.status(201).json({ success: true, data: blotter });
   } catch (error) {
-    console.error("Error creating blotter:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 
@@ -109,13 +104,9 @@ export const getUserBlotters = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    // SOLUTION: Look for user_id OR userId
-    const blotters = await Blotter.find({
-      $or: [
-        { userId: userId }, // Matches your existing test data
-      ],
-    })
-      .populate("assigned_Officer", "first_name last_name") // Adjusted based on your officer model
+    // CHANGED: Query using user_id only (No more $or needed)
+    const blotters = await Blotter.find({ user_id: userId })
+      .populate("assigned_Officer", "first_name last_name")
       .sort({ created_at: -1 });
 
     res.status(200).json({
@@ -124,11 +115,7 @@ export const getUserBlotters = async (req, res) => {
       blotters: blotters,
     });
   } catch (error) {
-    console.error("Error fetching user blotters:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
 };

@@ -56,7 +56,9 @@ const blotterSchema = new mongoose.Schema(
       unique: true,
       default: () => generateId("BLT"),
     },
-    userId: {
+
+    // CHANGED: Strictly snake_case now
+    user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
@@ -66,10 +68,9 @@ const blotterSchema = new mongoose.Schema(
     incident: { type: incidentSchema, required: true },
     attachments: { type: [attachmentSchema], default: [] },
 
-    // Admin fields
+    // Admin fields (Ensure this matches your Officer model too, usually assigned_officer?)
     assigned_Officer: { type: mongoose.Schema.Types.ObjectId, ref: "Officer" },
     notes: { type: String, default: "" },
-
     policeStation: {
       id: Number,
       name: String,
@@ -106,7 +107,7 @@ blotterSchema.pre("save", async function (next) {
 
 // Indexes for faster queries
 blotterSchema.index({ status: 1, created_at: -1 });
-blotterSchema.index({ userId: 1 });
+blotterSchema.index({ user_id: 1 }); // <--- Fixed this
 blotterSchema.index({ "reporter.contactNumber": 1 });
 
 const Blotter = mongoose.model("Blotter", blotterSchema);
