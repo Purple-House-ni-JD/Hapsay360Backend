@@ -1,5 +1,6 @@
 import Blotter from "../models/Blotter.js";
 import User from "../models/User.js";
+import Officer from "../models/Officer.js";
 
 /**
  * @route POST /api/blotters
@@ -70,13 +71,14 @@ export const createBlotter = async (req, res) => {
 
 /**
  * @route GET /api/blotters
- * Get all blotters using async/wait function
+ * Get all blotters using async/await function
  * */
 export const getAllBlotters = async (req, res) => {
   try {
     const blotters = await Blotter.find()
       .populate("user_id", "-password")
       .populate("assigned_Officer", "-password");
+    
     res.status(200).json({
       success: true,
       count: blotters.length,
@@ -92,14 +94,10 @@ export const getAllBlotters = async (req, res) => {
   }
 };
 
-// ... existing imports and functions
-
 /**
  * @route GET /api/blotters/user/:userId
  * Get blotters specific to a user
  */
-// controllers/blotter.controller.js
-
 export const getUserBlotters = async (req, res) => {
   try {
     const { userId } = req.params;

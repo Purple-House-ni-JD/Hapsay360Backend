@@ -48,7 +48,7 @@ const attachmentSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Unified Blotter Schemay
+// Unified Blotter Schema
 const blotterSchema = new mongoose.Schema(
   {
     custom_id: {

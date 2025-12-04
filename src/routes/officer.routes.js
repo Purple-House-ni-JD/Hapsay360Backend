@@ -5,7 +5,8 @@ import {
     updateOfficer, 
     deleteOfficer,
     getOfficerProfile,
-    updateOfficerProfile
+    updateOfficerProfile,
+    updateOfficerProfilePicture
 } from '../controllers/officer.controller.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 
@@ -17,8 +18,9 @@ router.get('/all', authMiddleware, getAllOfficers);
 router.put('/update/:id', authMiddleware, updateOfficer);
 router.delete('/delete/:id', authMiddleware, deleteOfficer);
 
-// New profile routes
+// profile routes
 router.get('/profile', authMiddleware, getOfficerProfile);
 router.put('/profile', authMiddleware, updateOfficerProfile);
+router.put('/profile/picture', authMiddleware, updateOfficerProfilePicture);
 
 export default router;
