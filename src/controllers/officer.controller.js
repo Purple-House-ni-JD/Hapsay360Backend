@@ -164,13 +164,15 @@ export const deleteOfficer = async (req, res) => {
 
 // Add these methods to your officer.controller.js
 
+// Add these methods to your existing officer.controller.js
+
 export const getOfficerProfile = async (req, res) => {
     try {
-        // Assuming you have authentication middleware that sets req.user
-        const officerId = req.user.id; // or req.user._id depending on your auth setup
+        // The authMiddleware already sets req.user.id
+        const officerId = req.user.id;
         
         const officer = await Officer.findById(officerId)
-            .populate('station_id', 'name')
+            .populate('station_id', 'name location')
             .select('-password'); // Exclude password from response
 
         if (!officer) {
@@ -185,20 +187,22 @@ export const getOfficerProfile = async (req, res) => {
             data: officer
         });
     } catch (error) {
-        console.error(error);
+        console.error('Get officer profile error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error'
+            message: 'Server error',
+            error: error.message
         });
     }
 };
 
 export const updateOfficerProfile = async (req, res) => {
     try {
-        // Assuming you have authentication middleware that sets req.user
-        const officerId = req.user.id; // or req.user._id depending on your auth setup
+        // The authMiddleware already sets req.user.id
+        const officerId = req.user.id;
         const { first_name, last_name, email, mobile_number, radio_id } = req.body;
 
+        // Validate required fields
         if (!first_name || !last_name || !email) {
             return res.status(400).json({
                 success: false,
@@ -206,6 +210,7 @@ export const updateOfficerProfile = async (req, res) => {
             });
         }
 
+        // Validate email format (reuse your existing validateEmail function)
         if (!validateEmail(email)) {
             return res.status(400).json({
                 success: false,
@@ -213,7 +218,7 @@ export const updateOfficerProfile = async (req, res) => {
             });
         }
 
-        // Check if email is being changed and if it already exists for another officer
+        // Find the officer
         const officer = await Officer.findById(officerId);
         if (!officer) {
             return res.status(404).json({
@@ -222,8 +227,12 @@ export const updateOfficerProfile = async (req, res) => {
             });
         }
 
+        // Check if email is being changed and if it already exists for another officer
         if (email !== officer.email) {
-            const existingOfficer = await Officer.findOne({ email });
+            const existingOfficer = await Officer.findOne({ 
+                email, 
+                _id: { $ne: officerId } // Exclude current officer
+            });
             if (existingOfficer) {
                 return res.status(400).json({
                     success: false,
@@ -237,14 +246,24 @@ export const updateOfficerProfile = async (req, res) => {
         officer.last_name = last_name;
         officer.email = email;
         
-        // Update contact information
+        // Initialize contact object if it doesn't exist
         if (!officer.contact) {
             officer.contact = {};
         }
-        officer.contact.mobile_number = mobile_number || officer.contact.mobile_number;
-        officer.contact.radio_id = radio_id || officer.contact.radio_id;
+        
+        // Update contact information (only if provided)
+        if (mobile_number !== undefined) {
+            officer.contact.mobile_number = mobile_number;
+        }
+        if (radio_id !== undefined) {
+            officer.contact.radio_id = radio_id;
+        }
 
+        // Save the updated officer
         const savedOfficer = await officer.save();
+        
+        // Populate station info for response
+        await savedOfficer.populate('station_id', 'name location');
         
         // Remove password from response
         const officerResponse = savedOfficer.toObject();
@@ -256,10 +275,11 @@ export const updateOfficerProfile = async (req, res) => {
             data: officerResponse
         });
     } catch (error) {
-        console.error(error);
+        console.error('Update officer profile error:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error'
+            message: 'Server error',
+            error: error.message
         });
     }
 };
