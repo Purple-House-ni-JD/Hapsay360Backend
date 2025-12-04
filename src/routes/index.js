@@ -10,6 +10,7 @@ import sosRoutes from "./sos.routes.js";
 import officerRoutes from "./officer.routes.js";
 import announcementRoutes from "./announcement.routes.js";
 import uploadRoutes from "./upload.routes.js";
+import paymentRoutes from "./payment.routes.js";
 
 const router = express.Router();
 
@@ -25,5 +26,6 @@ router.use("/sos", sosRoutes);
 router.use("/officers", officerRoutes);
 router.use("/announcements", announcementRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/payments", paymentRoutes);
 
 export default router;
