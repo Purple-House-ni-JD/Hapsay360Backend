@@ -14,8 +14,13 @@ import {
 const router = express.Router();
 
 // ADMIN ROUTES
-router.post("/create", authMiddleware, authorizeRoles("admin"), createBlotter);
-router.get("/getBlotters", authMiddleware, authorizeRoles("admin"), getAllBlotters);
+router.post("/create", authMiddleware, createBlotter);
+router.get(
+  "/getBlotters",
+  authMiddleware,
+  authorizeRoles("admin"),
+  getAllBlotters
+);
 
 // Kani ang para sa Mobile App:
 router.get("/my-blotters/:userId", getUserBlotters);

@@ -92,6 +92,50 @@ const applicationProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+/* ---------------------------------------------
+   POST-SAVE SYNC PROFILE → USER MODEL
+---------------------------------------------- */
+applicationProfileSchema.post("save", async function () {
+  try {
+    const User = mongoose.model("User");
+
+    const user = await User.findById(this.user);
+    if (!user) return;
+
+    // Sync PERSONAL INFO
+    if (this.personal_info) {
+      user.personal_info = {
+        given_name: this.personal_info.givenName,
+        middle_name: this.personal_info.middleName,
+        surname: this.personal_info.surname,
+        qualifier: this.personal_info.qualifier,
+        sex: this.personal_info.sex,
+        civil_status: this.personal_info.civilStatus,
+        birthday: this.personal_info.birthdate,
+        pwd: this.personal_info.isPWD,
+        nationality: this.personal_info.nationality,
+      };
+    }
+
+    // Sync ADDRESS
+    if (this.address) {
+      user.address = {
+        house_no: this.address.houseNo,
+        street: this.address.street,
+        city: this.address.city,
+        barangay: this.address.barangay,
+        postal_code: this.address.postalCode,
+        province: this.address.province,
+        country: this.address.country,
+      };
+    }
+
+    await user.save();
+  } catch (err) {
+    console.error("Error syncing ApplicationProfile to User:", err);
+  }
+});
+
 const ApplicationProfile = mongoose.model(
   "ApplicationProfile",
   applicationProfileSchema

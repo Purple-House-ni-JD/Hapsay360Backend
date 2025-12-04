@@ -1,60 +1,68 @@
-import mongoose from 'mongoose';
-import { generateId } from '../lib/idGenerator.js';
+import mongoose from "mongoose";
+import { generateId } from "../lib/idGenerator.js";
 
 // Location subdocument schema for SOS requests (Number coordinates)
-const sosLocationSchema = new mongoose.Schema({
+const sosLocationSchema = new mongoose.Schema(
+  {
     latitude: {
-        type: Number,
-        required: true
+      type: Number,
+      required: true,
     },
     longitude: {
-        type: Number,
-        required: true
-    }
-}, { _id: false });
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: false }
+);
 
 const sosRequestSchema = new mongoose.Schema({
-    custom_id: {
-        type: String,
-        unique: true,
-        default: () => generateId('SOS')
-    },
-    user_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    nearest_station_id: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'PoliceStation',
-        required: true
-    },
-    location: {
-        type: sosLocationSchema,
-        required: true
-    },
-    status: {
-        type: String,
-        required: true,
-        default: 'pending'
-    },
-    created_at: {
-        type: Date,
-        default: Date.now
-    },
-    updated_at: {
-        type: Date,
-        default: Date.now
-    }
+  custom_id: {
+    type: String,
+    unique: true,
+    default: () => generateId("SOS"),
+  },
+  user_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  nearest_station_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PoliceStation",
+    required: true,
+  },
+  responder_station_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PoliceStation",
+    default: null,
+  },
+  location: {
+    type: sosLocationSchema,
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["pending", "active", "responding", "resolved"],
+    required: true,
+    default: "pending",
+  },
+  created_at: {
+    type: Date,
+    default: Date.now,
+  },
+  updated_at: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 // Update updated_at before saving
-sosRequestSchema.pre('save', function(next) {
-    this.updated_at = Date.now();
-    next();
+sosRequestSchema.pre("save", function (next) {
+  this.updated_at = Date.now();
+  next();
 });
 
-const SOSRequest = mongoose.model('SOSRequest', sosRequestSchema);
+const SOSRequest = mongoose.model("SOSRequest", sosRequestSchema);
 
 export default SOSRequest;
-

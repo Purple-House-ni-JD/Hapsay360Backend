@@ -104,9 +104,53 @@ export const getAllClearances = async (req, res) => {
   }
 };
 
+/**
+ * Delete clearance by ID
+ * @route DELETE /api/clearance/:id
+ */
+export const deleteClearance = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const { id } = req.params;
+
+    const clearance = await ClearanceApplication.findById(id);
+    if (!clearance) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Clearance not found" });
+    }
+
+    // Only the owner or admin can delete
+    if (clearance.user_id.toString() !== userId && req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: cannot delete this clearance",
+      });
+    }
+
+    await ClearanceApplication.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Clearance deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting clearance:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
 export const updateClearance = async (req, res) => {
   try {
-    const userId = req.user?.id; // ✅ safe access
+    const userId = req.user?.id; // safe access
     if (!userId) {
       return res.status(401).json({ success: false, message: "Unauthorized" });
     }
@@ -123,12 +167,10 @@ export const updateClearance = async (req, res) => {
 
     // Only the owner or admin can update
     if (clearance.user_id.toString() !== userId && req.user.role !== "admin") {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "Forbidden: cannot update this clearance",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: cannot update this clearance",
+      });
     }
 
     // Update fields

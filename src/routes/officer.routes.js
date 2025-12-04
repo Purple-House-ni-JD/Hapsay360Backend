@@ -1,12 +1,26 @@
 import express from 'express';
-import { createOfficer, getAllOfficers, updateOfficer, deleteOfficer } from '../controllers/officer.controller.js';
-import { authMiddleware, authorizeRoles } from '../middlewares/authMiddleware.js';
+import { 
+    createOfficer, 
+    getAllOfficers, 
+    updateOfficer, 
+    deleteOfficer,
+    getOfficerProfile,
+    updateOfficerProfile,
+    updateOfficerProfilePicture
+} from '../controllers/officer.controller.js';
+import { authMiddleware } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-router.post('/create', authMiddleware, authorizeRoles('admin'), createOfficer);
-router.get('/all', authMiddleware, authorizeRoles('admin'), getAllOfficers);
-router.put('/update/:id', authMiddleware, authorizeRoles('admin'), updateOfficer);
-router.delete('/delete/:id', authMiddleware, authorizeRoles('admin'), deleteOfficer);
+// Existing routes
+router.post('/create', authMiddleware, createOfficer);
+router.get('/all', authMiddleware, getAllOfficers);
+router.put('/update/:id', authMiddleware, updateOfficer);
+router.delete('/delete/:id', authMiddleware, deleteOfficer);
+
+// profile routes
+router.get('/profile', authMiddleware, getOfficerProfile);
+router.put('/profile', authMiddleware, updateOfficerProfile);
+router.put('/profile/picture', authMiddleware, updateOfficerProfilePicture);
 
 export default router;
