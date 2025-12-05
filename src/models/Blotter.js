@@ -38,12 +38,13 @@ const reporterSchema = new mongoose.Schema(
   { _id: false }
 );
 
-// Attachment subdocument
+// UPDATED: Attachment subdocument (matches announcement pattern)
 const attachmentSchema = new mongoose.Schema(
   {
-    type: { type: String, required: true }, // photo, video, document
-    url: { type: String, required: true },
-    name: { type: String }, // optional for documents
+    filename: { type: String, required: true },
+    mimetype: { type: String, required: true },
+    data: { type: Buffer, required: true },
+    size: { type: Number, required: true }
   },
   { _id: false }
 );
@@ -57,7 +58,6 @@ const blotterSchema = new mongoose.Schema(
       default: () => generateId("BLT"),
     },
 
-    // CHANGED: Strictly snake_case now
     user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -68,7 +68,6 @@ const blotterSchema = new mongoose.Schema(
     incident: { type: incidentSchema, required: true },
     attachments: { type: [attachmentSchema], default: [] },
 
-    // Admin fields (Ensure this matches your Officer model too, usually assigned_officer?)
     assigned_Officer: { type: mongoose.Schema.Types.ObjectId, ref: "Officer" },
     notes: { type: String, default: "" },
     policeStation: {
@@ -77,8 +76,8 @@ const blotterSchema = new mongoose.Schema(
       address: String,
       latitude: Number,
       longitude: Number,
-      distance: Number, // in km
-      estimatedTime: Number, // in minutes
+      distance: Number,
+      estimatedTime: Number,
     },
 
     status: {
@@ -107,7 +106,7 @@ blotterSchema.pre("save", async function (next) {
 
 // Indexes for faster queries
 blotterSchema.index({ status: 1, created_at: -1 });
-blotterSchema.index({ user_id: 1 }); // <--- Fixed this
+blotterSchema.index({ user_id: 1 });
 blotterSchema.index({ "reporter.contactNumber": 1 });
 
 const Blotter = mongoose.model("Blotter", blotterSchema);

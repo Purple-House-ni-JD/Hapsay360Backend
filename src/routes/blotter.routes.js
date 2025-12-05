@@ -5,6 +5,7 @@ import {
   getAllBlotters,
   getUserBlotters,
   getBlotterAttachment, 
+  debugBlotterAttachments,
   updateBlotter,
   deleteBlotter
 } from "../controllers/blotter.controller.js";
@@ -27,5 +28,8 @@ router.get("/my-blotters/:userId", getUserBlotters);
 
 //para ma kita image sa admin
 router.get('/:blotterId/attachments/:attachmentIndex', getBlotterAttachment);
+
+// Debug endpoint 
+router.get('/:blotterId/debug', authMiddleware, debugBlotterAttachments);
 
 export default router;

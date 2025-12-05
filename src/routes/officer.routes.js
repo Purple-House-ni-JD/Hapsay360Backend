@@ -7,7 +7,10 @@ import {
     getOfficerProfile,
     updateOfficerProfile,
     updateOfficerProfilePicture,
-    getOfficerProfilePicture  // NEW: Add this
+    deleteOfficerProfilePicture, 
+    deleteOfficerAccount, 
+    getOfficerProfilePicture,
+    getOfficerProfilePictureById
 } from '../controllers/officer.controller.js';
 import { authMiddleware } from '../middlewares/authMiddleware.js';
 
@@ -23,6 +26,13 @@ router.delete('/delete/:id', authMiddleware, deleteOfficer);
 router.get('/profile', authMiddleware, getOfficerProfile);
 router.put('/profile', authMiddleware, updateOfficerProfile);
 router.put('/profile/picture', authMiddleware, updateOfficerProfilePicture);
-router.get('/profile/picture', authMiddleware, getOfficerProfilePicture);  // NEW: Add this
+router.delete('/profile/picture', authMiddleware, deleteOfficerProfilePicture);  // ADD THIS
+router.get('/profile/picture', authMiddleware, getOfficerProfilePicture);
+
+// Get any officer's picture by ID (for blotters, etc.)
+router.get('/:officerId/picture', authMiddleware, getOfficerProfilePictureById);
+
+router.delete('/profile/picture', authMiddleware, deleteOfficerProfilePicture);
+router.delete('/profile', authMiddleware, deleteOfficerAccount);
 
 export default router;
