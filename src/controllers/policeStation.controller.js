@@ -134,3 +134,38 @@ export const deletePoliceStation = async (req, res) => {
     });
   }
 };
+
+export const updatePoliceStation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {name, address, phone_number, email, landline, latitude, longitude} = req.body;
+
+        if(!name || !address || !phone_number || !landline) {
+            return res.status(400).json({ error: "All fields are required" });
+        }
+
+        const updates = {
+            name,
+            address,
+            contact: { phone_number, email, landline },
+            location: { latitude, longitude }
+        };
+
+        const station = await PoliceStation.findByIdAndUpdate(id, updates, { new: true });
+        if (!station) {
+            return res.status(404).json({
+                success: false,
+                message: 'Police Station not found'
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: station
+        });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            message: "Server Error: " + error.message,
+        });
+    }
+};
