@@ -44,7 +44,7 @@ const attachmentSchema = new mongoose.Schema(
     filename: { type: String, required: true },
     mimetype: { type: String, required: true },
     data: { type: Buffer, required: true },
-    size: { type: Number, required: true }
+    size: { type: Number, required: true },
   },
   { _id: false }
 );
@@ -97,17 +97,32 @@ blotterSchema.pre("save", async function (next) {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
-    const count = await mongoose.model("Blotter").countDocuments();
-    const sequence = String(count + 1).padStart(6, "0");
-    this.blotterNumber = `BLT-${year}${month}-${sequence}`;
+    const prefix = `BLT-${year}${month}`;
+
+    // 1. Find the blotter with the HIGHEST number for this month
+    const lastBlotter = await mongoose
+      .model("Blotter")
+      .findOne({ blotterNumber: { $regex: `^${prefix}` } })
+      .sort({ blotterNumber: -1 }) // Sort Descending to get the biggest number
+      .select("blotterNumber");
+
+    let sequence = 1;
+
+    if (lastBlotter && lastBlotter.blotterNumber) {
+      // 2. Extract the sequence part (e.g. "000004")
+      const parts = lastBlotter.blotterNumber.split("-");
+      const lastSeq = parseInt(parts[2]);
+
+      // 3. Add 1 to make it "000005"
+      if (!isNaN(lastSeq)) {
+        sequence = lastSeq + 1;
+      }
+    }
+
+    this.blotterNumber = `${prefix}-${String(sequence).padStart(6, "0")}`;
   }
   next();
 });
-
-// Indexes for faster queries
-blotterSchema.index({ status: 1, created_at: -1 });
-blotterSchema.index({ user_id: 1 });
-blotterSchema.index({ "reporter.contactNumber": 1 });
 
 const Blotter = mongoose.model("Blotter", blotterSchema);
 
