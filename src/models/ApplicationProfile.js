@@ -28,7 +28,7 @@ const addressSchema = new mongoose.Schema(
     city: String,
     barangay: String,
     province: String,
-    postalCode: String,
+    postal_code: String,
     country: String,
     email: String,
     mobile: String,
@@ -92,63 +92,73 @@ const applicationProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-/* ---------------------------------------------
-   POST-SAVE SYNC PROFILE → USER MODEL
----------------------------------------------- */
 applicationProfileSchema.post("save", async function () {
   try {
     const User = mongoose.model("User");
 
     const user = await User.findById(this.user);
     if (!user) return;
+    const hasValue = (val) => val !== undefined && val !== null && val !== "";
 
-    // Sync PERSONAL INFO
+    // only update fields that have values
     if (this.personal_info) {
-      user.personal_info = {
-        given_name: this.personal_info.givenName,
-        middle_name: this.personal_info.middleName,
-        surname: this.personal_info.surname,
-        qualifier: this.personal_info.qualifier,
-        sex: this.personal_info.sex,
-        civil_status: this.personal_info.civilStatus,
-        birthday: this.personal_info.birthdate,
-        pwd: this.personal_info.isPWD,
-        nationality: this.personal_info.nationality,
-      };
+      const updatedPersonalInfo = { ...(user.personal_info?.toObject() || {}) };
+
+      if (hasValue(this.personal_info.givenName)) {
+        updatedPersonalInfo.given_name = this.personal_info.givenName;
+      }
+      if (hasValue(this.personal_info.middleName)) {
+        updatedPersonalInfo.middle_name = this.personal_info.middleName;
+      }
+      if (hasValue(this.personal_info.surname)) {
+        updatedPersonalInfo.surname = this.personal_info.surname;
+      }
+      if (hasValue(this.personal_info.qualifier)) {
+        updatedPersonalInfo.qualifier = this.personal_info.qualifier;
+      }
+      if (hasValue(this.personal_info.sex)) {
+        updatedPersonalInfo.sex = this.personal_info.sex;
+      }
+      if (hasValue(this.personal_info.civilStatus)) {
+        updatedPersonalInfo.civil_status = this.personal_info.civilStatus;
+      }
+      if (hasValue(this.personal_info.birthdate)) {
+        updatedPersonalInfo.birthday = this.personal_info.birthdate;
+      }
+      if (this.personal_info.isPWD !== undefined) {
+        updatedPersonalInfo.pwd = this.personal_info.isPWD;
+      }
+      if (hasValue(this.personal_info.nationality)) {
+        updatedPersonalInfo.nationality = this.personal_info.nationality;
+      }
+
+      user.personal_info = updatedPersonalInfo;
     }
 
-    // Sync ADDRESS safely (avoid overwriting required fields with empty values)
+    // Sync ADDRESS - only update fields that have values
     if (this.address) {
       const updatedAddress = { ...(user.address?.toObject() || {}) };
 
-      const map = {
+      const fieldMap = {
         houseNo: "house_no",
         street: "street",
         city: "city",
         barangay: "barangay",
-        postalCode: "postal_code",
+        postal_code: "postal_code",
         province: "province",
         country: "country",
       };
 
-      for (const key in map) {
-        const apiFieldValue = this.address[key];
-        const userField = map[key];
-
-        // only update if value is NOT empty
-        if (
-          apiFieldValue !== "" &&
-          apiFieldValue !== null &&
-          apiFieldValue !== undefined
-        ) {
-          updatedAddress[userField] = apiFieldValue;
+      for (const [appField, userField] of Object.entries(fieldMap)) {
+        if (hasValue(this.address[appField])) {
+          updatedAddress[userField] = this.address[appField];
         }
       }
 
       user.address = updatedAddress;
     }
 
-    await user.save();
+    await user.save({ validateBeforeSave: false });
   } catch (err) {
     console.error("Error syncing ApplicationProfile to User:", err);
   }
