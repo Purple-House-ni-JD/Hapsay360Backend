@@ -1,22 +1,23 @@
 import mongoose from "mongoose";
 import { generateId } from "../lib/idGenerator.js";
 
+// Attachment Schema
+const attachmentSchema = new mongoose.Schema(
+  {
+    filename: { type: String, required: true },
+    mimetype: { type: String, required: true },
+    data: { type: Buffer, required: true },
+    size: { type: Number, required: true },
+  },
+  { _id: false }
+);
+
 // Payment subdocument schema
 const paymentSchema = new mongoose.Schema(
   {
-    processor: {
-      type: String,
-      required: false,
-    },
-    transaction_id: {
-      type: String,
-      required: false,
-    },
-    status: {
-      type: String,
-      required: false,
-      default: "pending",
-    },
+    processor: { type: String, required: false },
+    transaction_id: { type: String, required: false },
+    status: { type: String, required: false, default: "pending" },
   },
   { _id: false }
 );
@@ -32,39 +33,22 @@ const clearanceApplicationSchema = new mongoose.Schema({
     ref: "PoliceStation",
     required: false,
   },
-  purpose: {
-    type: String,
-    required: true,
+  purpose: { type: String, required: true },
+  appointment_date: { type: Date, required: false },
+  time_slot: { type: String, required: false },
+  price: { type: Number, required: false },
+  status: { type: String, required: true, default: "pending" },
+
+  // --- THIS WAS MISSING ---
+  attachments: {
+    type: [attachmentSchema],
+    default: [],
   },
-  appointment_date: {
-    type: Date,
-    required: false,
-  },
-  time_slot: {
-    type: String,
-    required: false,
-  },
-  price: {
-    type: Number,
-    required: false,
-  },
-  status: {
-    type: String,
-    required: true,
-    default: "pending",
-  },
-  payment: {
-    type: paymentSchema,
-    required: false,
-  },
-  created_at: {
-    type: Date,
-    default: Date.now,
-  },
-  updated_at: {
-    type: Date,
-    default: Date.now,
-  },
+  // ------------------------
+
+  payment: { type: paymentSchema, required: false },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
   custom_id: {
     type: String,
     unique: true,
