@@ -12,13 +12,10 @@ export const createAnnouncement = async (req, res) => {
             });
         }
 
-        // Handle attachments - convert base64 to Buffer
         let attachmentArray = [];
         if (attachments && Array.isArray(attachments)) {
             attachmentArray = attachments.map(att => {
-                // If it's base64 data, convert to Buffer
                 if (att.data && typeof att.data === 'string' && att.data.startsWith('data:')) {
-                    // Extract base64 data from data URL (data:image/png;base64,...)
                     const base64Data = att.data.split(',')[1] || att.data;
                     const buffer = Buffer.from(base64Data, 'base64');
                     
@@ -29,11 +26,9 @@ export const createAnnouncement = async (req, res) => {
                         size: buffer.length
                     };
                 }
-                // If it's already a buffer or existing attachment, keep as is
                 return att;
             });
         } else if (attachments && attachments.data) {
-            // Single attachment
             const base64Data = attachments.data.split(',')[1] || attachments.data;
             const buffer = Buffer.from(base64Data, 'base64');
             attachmentArray = [{
@@ -54,7 +49,6 @@ export const createAnnouncement = async (req, res) => {
 
         const savedAnnouncement = await newAnnouncement.save();
         
-        // Convert binary data to URLs in response
         const responseData = savedAnnouncement.toObject();
         if (responseData.attachments) {
             responseData.attachments = responseData.attachments.map((att, index) => ({
@@ -156,24 +150,18 @@ export const updateAnnouncement = async (req, res) => {
             });
         }
 
-        // Handle attachments - convert base64 to Buffer for new attachments, keep existing ones
         let attachmentArray = [];
         if (attachments && Array.isArray(attachments)) {
             attachmentArray = attachments.map(att => {
-                // If it has a URL (existing attachment), extract index and keep existing data from DB
                 if (att.url && !att.data) {
-                    // Extract index from URL like /api/announcements/:id/attachments/:index
-                    // or just the index if it's a number in the URL path
                     const urlMatch = att.url.match(/\/attachments\/(\d+)/);
                     if (urlMatch) {
                         const index = parseInt(urlMatch[1]);
-                        // Keep the existing attachment from the database
                         if (announcement.attachments && announcement.attachments[index]) {
                             return announcement.attachments[index];
                         }
                     }
                 }
-                // If it's base64 data, convert to Buffer
                 if (att.data && typeof att.data === 'string' && att.data.startsWith('data:')) {
                     const base64Data = att.data.split(',')[1] || att.data;
                     const buffer = Buffer.from(base64Data, 'base64');
@@ -185,7 +173,6 @@ export const updateAnnouncement = async (req, res) => {
                         size: buffer.length
                     };
                 }
-                // If it already has a buffer (shouldn't happen from frontend, but handle it)
                 if (att.data && Buffer.isBuffer(att.data)) {
                     return att;
                 }
@@ -201,7 +188,6 @@ export const updateAnnouncement = async (req, res) => {
 
         const updatedAnnouncement = await announcement.save();
         
-        // Convert binary data to URLs in response
         const responseData = updatedAnnouncement.toObject();
         if (responseData.attachments) {
             responseData.attachments = responseData.attachments.map((att, index) => ({
@@ -226,7 +212,6 @@ export const updateAnnouncement = async (req, res) => {
     }
 };
 
-// New endpoint to serve attachment images
 export const getAttachment = async (req, res) => {
     try {
         const { announcementId, attachmentIndex } = req.params;
@@ -271,18 +256,14 @@ export const getAttachment = async (req, res) => {
 
         console.log(`Serving attachment: ${attachment.filename}, type: ${attachment.mimetype}, size: ${attachment.data.length}`);
         
-        // Encode filename properly to handle special characters (RFC 5987)
         const encodedFilename = encodeURIComponent(attachment.filename);
         
-        // Set appropriate headers
         res.set('Content-Type', attachment.mimetype || 'image/jpeg');
         res.set('Content-Length', attachment.data.length);
         res.set('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodedFilename}`);
-        // Add CORS headers for image requests
         res.set('Access-Control-Allow-Origin', '*');
         res.set('Access-Control-Allow-Methods', 'GET');
         
-        // Send the binary data
         res.send(attachment.data);
     } catch (error) {
         console.error('Error getting attachment:', error);

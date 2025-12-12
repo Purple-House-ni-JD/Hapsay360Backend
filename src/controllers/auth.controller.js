@@ -152,7 +152,7 @@ export const registerAdmin = async (req, res) => {
     }
 
     // Create officer
-    const officer = new Officer({ first_name, last_name, email, password, role: "admin" });
+    const officer = new Officer({ first_name, last_name, email, password, role: "ADMIN" });
     await officer.save();
 
     const token = generateToken(officer._id);

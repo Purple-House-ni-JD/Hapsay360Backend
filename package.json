@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "drop-username-index": "node src/scripts/dropUsernameIndex.js",
     "populate-custom-ids": "node src/scripts/populateCustomIds.js"
