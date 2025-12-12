@@ -1,15 +1,18 @@
 import { Officer, PoliceStation } from "../models/index.js";
 import { validateEmail } from "./auth.controller.js";
+import bcrypt from 'bcryptjs';
 import 'pdfkit-table';
 
+// In officer.controller.js - update the createOfficer function
 export const createOfficer = async (req, res) => {
     try {
-        const { first_name, last_name, email, role, station_id, mobile_number, status, password } = req.body;
+        const { first_name, last_name, email, role, station_id, mobile_number, status, password, is_admin } = req.body;
 
-        if (!first_name || !last_name || !email || !role || !station_id || !mobile_number) {
+        // Basic validation - adjust requirements based on user type
+        if (!first_name || !last_name || !email || !role) {
             return res.status(400).json({
                 success: false,
-                message: 'All fields are required'
+                message: 'First name, last name, email, and role are required'
             });
         }
         
@@ -20,6 +23,15 @@ export const createOfficer = async (req, res) => {
             });
         }
 
+        if (!is_admin) {
+            if (!mobile_number || !station_id) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Mobile number and station are required for officers'
+                });
+            }
+        }
+
         const existingOfficer = await Officer.findOne({ email });
         if (existingOfficer) {
             return res.status(400).json({
@@ -28,43 +40,72 @@ export const createOfficer = async (req, res) => {
             });
         }
 
-        const newOfficer = new Officer({
+        const officerData = {
             first_name,
             last_name,
             email,
-            password: password? password : null,
             role,
-            station_id,
-            contact: {
+            status: status || 'ACTIVE',
+        };
+
+        if (station_id) {
+            officerData.station_id = station_id;
+        }
+
+        if (mobile_number) {
+            officerData.contact = {
                 mobile_number: mobile_number
-            },
-            status,
-        });
+            };
+        }
 
-        const station = await PoliceStation.findByIdAndUpdate(
-            station_id,
-            { $push: { officer_IDs: newOfficer._id } },
-            { new: true }
-        );
+        if (is_admin) {
+            if (!password || password.length < 6) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Password must be at least 6 characters for admin accounts'
+                });
+            }
+            officerData.password = password;
+        } else if (password && password.length > 0) {
+            officerData.password = password;
+        } else {
+            const randomPassword = Math.random().toString(36).slice(-8);
+            officerData.password = randomPassword;
+        }
 
-        if (!station) {
-            return res.status(404).json({
-                success: false,
-                message: 'Station not found'
-            });
+        const newOfficer = new Officer(officerData);
+
+        if (station_id) {
+            const station = await PoliceStation.findByIdAndUpdate(
+                station_id,
+                { $push: { officer_IDs: newOfficer._id } },
+                { new: true }
+            );
+
+            if (!station) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Station not found'
+                });
+            }
         }
 
         const savedOfficer = await newOfficer.save();
+        
+        const officerResponse = savedOfficer.toObject();
+        delete officerResponse.password;
+
         res.status(201).json({
             success: true,
-            message: 'Officer created successfully',
-            officer: savedOfficer
+            message: is_admin ? 'Admin created successfully' : 'Officer created successfully',
+            officer: officerResponse
         });
     } catch (error) {
-        console.error(error);
+        console.error('Error creating officer:', error);
         res.status(500).json({
             success: false,
-            message: 'Server error'
+            message: 'Server error',
+            error: error.message
         });
     }
 };
@@ -88,7 +129,7 @@ export const getAllOfficers = async (req, res) => {
 export const updateOfficer = async (req, res) => {
     try {
         const { id } = req.params;
-        const { first_name, last_name, email, role, station_id, mobile_number, status } = req.body;
+        const { first_name, last_name, email, role, station_id, mobile_number, status, password } = req.body;
 
         if (!first_name || !last_name || !email || !role || !station_id || !mobile_number || !status) {
             return res.status(400).json({
@@ -119,6 +160,7 @@ export const updateOfficer = async (req, res) => {
         officer.station_id = station_id;
         officer.contact.mobile_number = mobile_number;
         officer.status = status;
+        officer.password = password ? password : null;
 
         const savedOfficer = await officer.save();
         res.status(200).json({
@@ -213,7 +255,7 @@ export const getOfficerProfile = async (req, res) => {
 export const updateOfficerProfile = async (req, res) => {
     try {
         const officerId = req.user.id;
-        const { first_name, last_name, email, mobile_number, radio_id } = req.body;
+        const { first_name, last_name, email, mobile_number } = req.body;
 
         if (!first_name || !last_name || !email) {
             return res.status(400).json({
@@ -261,9 +303,6 @@ export const updateOfficerProfile = async (req, res) => {
         if (mobile_number !== undefined) {
             officer.contact.mobile_number = mobile_number;
         }
-        if (radio_id !== undefined) {
-            officer.contact.radio_id = radio_id;
-        }
 
         const savedOfficer = await officer.save();
         await savedOfficer.populate('station_id', 'name location');
@@ -286,6 +325,78 @@ export const updateOfficerProfile = async (req, res) => {
         });
     } catch (error) {
         console.error('Update officer profile error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error',
+            error: error.message
+        });
+    }
+};
+
+/**
+ * Change the authenticated officer's password
+ */
+/**
+ * Change the authenticated officer's password
+ */
+export const changeOfficerPassword = async (req, res) => {
+    try {
+        const officerId = req.user.id;
+        const { current_password, new_password } = req.body;
+
+        if (!current_password || !new_password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Current password and new password are required'
+            });
+        }
+
+        if (new_password.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 6 characters long'
+            });
+        }
+
+        const officer = await Officer.findById(officerId);
+        if (!officer) {
+            return res.status(404).json({
+                success: false,
+                message: 'Officer not found'
+            });
+        }
+
+        if (!officer.password) {
+            return res.status(400).json({
+                success: false,
+                message: 'Officer does not have a password set yet. Please use the reset password feature.'
+            });
+        }
+
+        const isPasswordValid = await bcrypt.compare(current_password, officer.password);
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: 'Current password is incorrect'
+            });
+        }
+
+        const isSamePassword = await bcrypt.compare(new_password, officer.password);
+        if (isSamePassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password cannot be the same as the current password'
+            });
+        }
+        officer.password = new_password;
+        await officer.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Password changed successfully'
+        });
+    } catch (error) {
+        console.error('Change password error:', error);
         res.status(500).json({
             success: false,
             message: 'Server error',
