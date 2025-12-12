@@ -5,6 +5,7 @@ import {
   getMyClearances,
   updateClearance,
   deleteClearance,
+  getClearanceAttachment,
 } from "../controllers/clearance.controller.js";
 
 import {
@@ -34,6 +35,7 @@ router.put(
 
 // ADMIN ROUTES
 router.get("/", authMiddleware, authorizeRoles("admin"), getAllClearances);
+router.get("/:id/attachments/:index", getClearanceAttachment);
 
 // Delete Admin
 router.delete("/:id", authMiddleware, authorizeRoles("admin"), deleteClearance);

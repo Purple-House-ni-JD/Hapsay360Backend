@@ -33,10 +33,16 @@ export const createPayment = async (req, res) => {
  */
 export const getPayments = async (req, res) => {
   try {
-    const payments = await Payment.find().populate(
+    const { userId } = req.query;
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const payments = await Payment.find({ user_id: userId }).populate(
       "user_id",
       "email personal_info"
     );
+
     res.status(200).json(payments);
   } catch (error) {
     console.error(error);

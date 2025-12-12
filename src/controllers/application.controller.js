@@ -4,17 +4,79 @@ import ApplicationProfile from "../models/ApplicationProfile.js";
 /**
  * Get current user's application
  */
+/**
+ * Get current user's application
+ */
 export const getApplication = async (req, res) => {
   try {
     const profile = await ApplicationProfile.findOne({ user: req.user.id });
 
-    res.json({
-      profile: profile || {
-        personal_info: {},
-        address: {},
-        other_info: {},
-        family: {},
+    const fallbackProfile = {
+      personal_info: {
+        givenName: "",
+        middleName: "",
+        surname: "",
+        qualifier: "",
+        sex: "",
+        civilStatus: "",
+        birthdate: "",
+        isPWD: false,
+        isFirstTimeJobSeeker: false,
+        nationality: "",
+        birthPlace: "",
+        otherCountry: "",
       },
+      address: {
+        houseNo: "",
+        street: "",
+        city: "",
+        barangay: "",
+        province: "",
+        postalCode: "",
+        country: "",
+        email: "",
+        mobile: "",
+        telephone: "",
+      },
+      family: {
+        father: {
+          given: "",
+          middle: "",
+          surname: "",
+          qualifier: "",
+          birthPlace: "",
+          otherCountry: "",
+        },
+        mother: {
+          given: "",
+          middle: "",
+          surname: "",
+          qualifier: "",
+          birthPlace: "",
+          otherCountry: "",
+        },
+        spouse: {
+          given: "",
+          middle: "",
+          surname: "",
+          qualifier: "",
+        },
+      },
+      other_info: {
+        height: "",
+        weight: "",
+        complexion: "",
+        identifyingMarks: "",
+        bloodType: "",
+        religion: "",
+        education: "",
+        occupation: "",
+      },
+      profile_picture: "",
+    };
+
+    return res.json({
+      profile: profile || fallbackProfile,
     });
   } catch (err) {
     console.error("getApplication error:", err);
