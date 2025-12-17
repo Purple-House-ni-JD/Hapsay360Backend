@@ -34,7 +34,7 @@ router.put(
 router.delete(
   "/delete/:blotterId",
   authMiddleware,
-  authorizeRoles("admin"),
+  authorizeRoles("admin, user"),
   deleteBlotter
 );
 
