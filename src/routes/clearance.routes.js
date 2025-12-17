@@ -38,6 +38,11 @@ router.get("/", authMiddleware, authorizeRoles("admin"), getAllClearances);
 router.get("/:id/attachments/:index", getClearanceAttachment);
 
 // Delete Admin
-router.delete("/:id", authMiddleware, authorizeRoles("admin"), deleteClearance);
+router.delete(
+  "/:id",
+  authMiddleware,
+  authorizeRoles("admin", "user"),
+  deleteClearance
+);
 
 export default router;
